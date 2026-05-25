@@ -13,5 +13,5 @@ This program includes the following features:
 The project is based from the class diagram that explains the functions of each classes: https://docs.google.com/spreadsheets/d/1Jq32oJ2zFISkkz7ArMZi5tileXsol66STqpQaP1La8U/edit?usp=sharing
 
 To use the program. please type the following:
-  Username: admin
-  Password: 1234
+  # Username: admin
+  # Password: 1234
