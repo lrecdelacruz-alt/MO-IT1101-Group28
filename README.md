@@ -12,6 +12,7 @@ This project follows the provided UML class diagram and milestone requirements f
 
 **Features**
 
+
 Authentication
 Username and password login with masked password input
 Exit confirmation on login cancel
