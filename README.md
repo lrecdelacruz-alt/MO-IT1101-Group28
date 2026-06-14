@@ -60,6 +60,7 @@ Payroll summary report with totals and average net pay
 
 
 <h2>Running the Program</h2>
+
 Default Login Credentials
 * Username: admin
 * Password: admin123
@@ -71,6 +72,7 @@ Sample Employee IDs for Testing
 
 
 <h2>Validation and Error Handling</h2>
+
 * Empty field detection on all input forms
 * Numeric validation for salary and hourly rate fields
 * Positive value validation for salary and hourly rate
@@ -83,6 +85,7 @@ Sample Employee IDs for Testing
 
 
 <h2>GUI Improvements</h2>
+
 * Non-blocking JFrame main menu so sub-windows can be opened freely
 * Real-time search/filter field in Employee Management
 * JTable with non-editable cells and auto-refresh after changes
@@ -93,14 +96,15 @@ Sample Employee IDs for Testing
 
 
 <h2>Notes</h2>
+
 * Sample employee and attendance records are hardcoded for MS1 demonstration purposes
 * Default login credentials are predefined in AuthService.java
 * Payroll deduction rates are approximations for MS1; official bracket tables will be applied in future milestones
 * CSV stubs (readCSVFile, parseEmployees, parseAttendance) are defined in PayrollService.java and reserved for future milestone integration
 
 
-**Class Diagram Reference**
+<h2>Class Diagram Reference</h2>
 https://docs.google.com/spreadsheets/d/1Jq32oJ2zFISkkz7ArMZi5tileXsol66STqpQaP1La8U/edit?usp=sharing
 
-**Final Submission**
+<h2>Final Submission</h2>
 This repository contains the integrated group submission for the MotorPH Payroll System Milestone 1 prototype.
