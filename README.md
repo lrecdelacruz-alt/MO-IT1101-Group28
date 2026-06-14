@@ -1,66 +1,99 @@
-# Welcome to the MotorPH Payroll System App!
-A Java Swing-based Payroll Management System for MotorPH that handles employee management, attendance tracking, payroll computation, and payslip generation using CSV employee records.
+MotorPH Payroll System App
 
-# Features of the Program
-  - Employee Management
-  - Attendance Tracking
-  - Payroll Processing
-  - Payslip Generation
-  - Java Swing GUI
-  - Login Authentication
-  - Gross Pay and Deduction Calculation
+Project Overview
+MotorPH Payroll System App is a Java Swing-based payroll and employee management prototype developed for Computer Programming 2.
 
-The project is based from the class diagram that explains the functions of each classes: https://docs.google.com/spreadsheets/d/1Jq32oJ2zFISkkz7ArMZi5tileXsol66STqpQaP1La8U/edit?usp=sharing
+The system applies Object-Oriented Programming (OOP) principles and event-driven programming to manage employee records, attendance data, payroll processing, and payslip generation through a graphical user interface (GUI).
 
-# Technologies Used
-  - Java
-  - Java Swing
-  - ArrayList
-  - File Handling
+This project follows the provided UML class diagram and milestone requirements focused on Java Swing implementation, backend integration, input validation, and interface navigation.
 
-# Running the Program (Login Credentials)
-  - Username: admin
-  - Password: 1234
 
-# Expectations
-(1) Main Class
-- Starts the application
-- Loads employee records
-- Displays login form
-- Opens GUI menus
+Features
 
-(2) Employee Class
-- Employee ID
-- Name
-- Position
-- Salary
-- Hourly Rate
-- Allowances
+Authentication
+Username and password login with masked password input
+Exit confirmation on login cancel
+Invalid login detection with user-friendly error messages
 
-(3) Attendance Class
-- Time In
-- Time Out
-- Total Hours Worked
+Employee Management
 
-(4) Payroll Calculator Class
-- Gross Pay
-- Tax
-- SSS
-- PhilHealth
-- Pag-IBIG
-- Net Pay
+Add, Update, Delete, and View employee records
+Employee table display using JTable with real-time search/filter
+Delete confirmation dialog before removal
+View individual attendance records per employee
 
-(5) Payroll Service Class
-- Loads employee CSV records
-- Processes payroll
-- Generates payslips
-- Searches employee records
+Attendance Management
+Store and display sample attendance records
+Compute total hours worked per employee
+Link attendance records to employees by ID
 
-(6) Employee Menu
-- Java Swing GUI for employee management.
+Payroll Processing
+Gross Pay, Deductions, and Net Pay computation
+Deductions include SSS, PhilHealth, Pag-IBIG, and Withholding Tax
+Individual payslip generation
+Payroll summary report with totals and average net pay
 
-(7) Payroll Menu
-- Java Swing GUI for payroll processing and payslip viewing.
 
-(8) AuthService
-- Handles login authentication.
+Technologies Used
+Java
+Java Swing
+Java Collections Framework (ArrayList)
+Event-Driven Programming
+Object-Oriented Programming (OOP)
+
+
+System Structure
+Main.java — Entry point, login flow, main navigation menu
+Employee.java — Employee attributes and utility methods
+Attendance.java — Attendance records and hours worked computation
+PayrollService.java — Backend logic for CRUD, payroll computation, and report generation
+AuthService.java — Login validation and logout handling
+EmployeeMenu.java — Employee management GUI and event handling
+PayrollMenu.java — Payroll operations GUI and event handling
+
+
+Running the Program
+Default Login Credentials
+Username: admin
+Password: admin123
+
+Sample Employee IDs for Testing
+10001
+10002
+10003
+
+
+Validation and Error Handling
+Empty field detection on all input forms
+Numeric validation for salary and hourly rate fields
+Positive value validation for salary and hourly rate
+Duplicate Employee ID prevention
+Empty selection handling for table actions
+Invalid login detection
+Employee not found handling during payslip generation
+Delete confirmation before record removal
+Friendly error messages throughout using JOptionPane
+
+
+GUI Improvements
+Non-blocking JFrame main menu so sub-windows can be opened freely
+Real-time search/filter field in Employee Management
+JTable with non-editable cells and auto-refresh after changes
+Monospaced font in payroll output area for aligned payslip formatting
+Exit button placed on the right following standard UI conventions
+Consistent spacing, layout, and font across all windows
+User feedback dialogs for all major actions
+
+
+Notes
+Sample employee and attendance records are hardcoded for MS1 demonstration purposes
+Default login credentials are predefined in AuthService.java
+Payroll deduction rates are approximations for MS1; official bracket tables will be applied in future milestones
+CSV stubs (readCSVFile, parseEmployees, parseAttendance) are defined in PayrollService.java and reserved for future milestone integration
+
+
+Class Diagram Reference
+https://docs.google.com/spreadsheets/d/1Jq32oJ2zFISkkz7ArMZi5tileXsol66STqpQaP1La8U/edit?usp=sharing
+
+Final Submission
+This repository contains the integrated group submission for the MotorPH Payroll System Milestone 1 prototype.
