@@ -1,7 +1,7 @@
-MotorPH Payroll System App
-
-Project Overview
-MotorPH Payroll System App is a Java Swing-based payroll and employee management prototype developed for Computer Programming 2.
+**MotorPH Payroll System App
+**
+**Project Overview
+**MotorPH Payroll System App is a Java Swing-based payroll and employee management prototype developed for Computer Programming 2.
 
 The system applies Object-Oriented Programming (OOP) principles and event-driven programming to manage employee records, attendance data, payroll processing, and payslip generation through a graphical user interface (GUI).
 
