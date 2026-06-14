@@ -18,20 +18,20 @@ Username and password login with masked password input
 Exit confirmation on login cancel
 Invalid login detection with user-friendly error messages
 
-**Employee Management**
+<h2>Employee Management</h2>
 
 Add, Update, Delete, and View employee records
 Employee table display using JTable with real-time search/filter
 Delete confirmation dialog before removal
 View individual attendance records per employee
 
-**Attendance Management**
+<h2>Attendance Management</h2>
 
 Store and display sample attendance records
 Compute total hours worked per employee
 Link attendance records to employees by ID
 
-**Payroll Processing**
+<h2>Payroll Processing</h2>
 
 Gross Pay, Deductions, and Net Pay computation
 Deductions include SSS, PhilHealth, Pag-IBIG, and Withholding Tax
@@ -39,7 +39,8 @@ Individual payslip generation
 Payroll summary report with totals and average net pay
 
 
-**Technologies Used**
+<h2>Technologies Used</h2>
+
 * Java
 * Java Swing
 * Java Collections Framework (ArrayList)
@@ -47,7 +48,8 @@ Payroll summary report with totals and average net pay
 * Object-Oriented Programming (OOP)
 
 
-**System Structure**
+<h2>System Structure</h2>
+
 * Main.java — Entry point, login flow, main navigation menu
 * Employee.java — Employee attributes and utility methods
 * Attendance.java — Attendance records and hours worked computation
@@ -57,7 +59,7 @@ Payroll summary report with totals and average net pay
 * PayrollMenu.java — Payroll operations GUI and event handling
 
 
-**Running the Program**
+<h2>Running the Program</h2>
 Default Login Credentials
 * Username: admin
 * Password: admin123
@@ -68,19 +70,19 @@ Sample Employee IDs for Testing
 * 10003
 
 
-Validation and Error Handling
-Empty field detection on all input forms
-Numeric validation for salary and hourly rate fields
-Positive value validation for salary and hourly rate
-Duplicate Employee ID prevention
-Empty selection handling for table actions
-Invalid login detection
-Employee not found handling during payslip generation
-Delete confirmation before record removal
-Friendly error messages throughout using JOptionPane
+<h2>Validation and Error Handling</h2>
+* Empty field detection on all input forms
+* Numeric validation for salary and hourly rate fields
+* Positive value validation for salary and hourly rate
+* Duplicate Employee ID prevention
+* Empty selection handling for table actions
+* Invalid login detection
+* Employee not found handling during payslip generation
+* Delete confirmation before record removal
+* Friendly error messages throughout using JOptionPane
 
 
-**GUI Improvements**
+<h2>GUI Improvements</h2>
 * Non-blocking JFrame main menu so sub-windows can be opened freely
 * Real-time search/filter field in Employee Management
 * JTable with non-editable cells and auto-refresh after changes
@@ -90,7 +92,7 @@ Friendly error messages throughout using JOptionPane
 * User feedback dialogs for all major actions
 
 
-**Notes**
+<h2>Notes</h2>
 * Sample employee and attendance records are hardcoded for MS1 demonstration purposes
 * Default login credentials are predefined in AuthService.java
 * Payroll deduction rates are approximations for MS1; official bracket tables will be applied in future milestones
