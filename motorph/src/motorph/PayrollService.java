@@ -1,255 +1,360 @@
 package motorph;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+// ============================================================
 // PAYROLL SERVICE CLASS
 // Central backend service for the MotorPH Payroll System.
 //
 // Responsibilities:
-//   - Manage the employee list (CRUD operations)
-//   - Manage the attendance records list
-//   - Compute gross pay, deductions, and net pay
-//   - Generate formatted payslip strings
-//   - Generate payroll summary data
+//   - Load employee records from the MotorPH Employee Details CSV
+//   - Perform CRUD operations (add, update, delete) and sync to CSV
+//   - Compute salaries for all employees using attendance data
+//   - Generate payslips and payroll reports
+//   - Notify registered listeners (e.g. open EmployeeMenu windows)
+//     whenever employee data actually changes (Observer pattern)
 //
-// NOTE: For MS1, employee and attendance data are loaded via
-//       hardcoded sample records. The parseEmployees(),
-//       parseAttendance(), and readCSVFile() methods are
-//       defined as stubs reserved for future CSV integration.
+// All file operations delegate to CSVHandler.
+// All salary computations delegate to SalaryComputationModule.
+// This class only coordinates data flow between layers.
+// ============================================================
+
 public class PayrollService {
 
-    // DEDUCTION CONSTANTS
-    // Rates aligned with PH government approximations for MS1.
-    // These will be updated with official bracket tables in
-    // future milestones.
-    private static final double DEDUCTION_RATE_SSS = 0.045;  // 4.5% of gross pay
-    private static final double DEDUCTION_RATE_PHILHEALTH = 0.020;  // 2.0% of gross pay
-    private static final double TAX_RATE = 0.100;  // 10% withholding tax
-    private static final double PAGIBIG_FIXED = 100.00; // Fixed Pag-IBIG contribution
+    private static final String PROJECT_ROOT = 
+    new java.io.File("").getAbsolutePath();
+    // CSV file paths — public so EmployeeMenu can reference them
+    public static final String EMPLOYEE_FILE   =
+    PROJECT_ROOT + java.io.File.separator + "data" 
+     + java.io.File.separator +     "MotorPH_Employee Data - Employee Details.csv";
+    public static final String ATTENDANCE_FILE =
+        PROJECT_ROOT + java.io.File.separator + "data" 
+         + java.io.File.separator +     "MotorPH_Employee Data - Attendance Record.csv";
 
-    // Overtime multiplier (standard PH rate: 1.25x regular hourly rate)
-    private static final double OVERTIME_RATE = 1.25;
-
-    // ATTRIBUTES (aligned with class diagram inventory)
     private List<Employee> employees = new ArrayList<>();
-    private List<Attendance> attendanceRecords = new ArrayList<>();
 
-    // filePath is reserved for future CSV file integration
-    private String filePath = "";
+    // Observer pattern: windows register here to be notified whenever
+    // employee data changes from anywhere in the app.
+    private final List<DataChangeListener> listeners = new ArrayList<>();
 
-    // DATA LOADING — Sample Data for MS1
-    /**
-     * Loads hardcoded sample employee records for MS1 demonstration. Replace
-     * the body of this method with parseEmployees() logic once CSV integration
-     * is implemented in a future milestone.
-     */
-    public void loadEmployees() {
-        employees.add(new Employee("10001", "Michael", "Jackson", "HR Manager", 250.00, 50000.00));
-        employees.add(new Employee("10002", "Ryland", "Grace", "Software Engineer", 300.00, 60000.00));
-        employees.add(new Employee("10003", "Severus", "Snape", "Accountant", 200.00, 40000.00));
-    }
+    // --------------------------------------------------------
+    // DATA LOADING
+    // --------------------------------------------------------
 
     /**
-     * Loads hardcoded sample attendance records for MS1 demonstration. Replace
-     * the body of this method with parseAttendance() logic once CSV integration
-     * is implemented in a future milestone.
-     */
-    public void loadAttendance() {
-        attendanceRecords.add(new Attendance("ATT001", "10001", "2026-05-25", 8.0, 17.0, 0));
-        attendanceRecords.add(new Attendance("ATT002", "10002", "2026-05-25", 9.0, 18.0, 0));
-        attendanceRecords.add(new Attendance("ATT003", "10003", "2026-05-25", 8.0, 17.0, 0));
-    }
-
-    // CSV STUBS — Reserved for Future Milestones
-    /**
-     * Reads raw CSV content from the specified file path. Reserved for future
-     * CSV file integration.
+     * Loads employee records from the MotorPH Employee Details CSV.
+     * Handles both the original 19-column format and our 14-column
+     * working format automatically via CSVHandler.
      *
-     * @param csvFilePath Path to the CSV file to be read
-     */
-    public void readCSVFile(String csvFilePath) {
-        // TODO: Implement CSV file reading in a future milestone
-        this.filePath = csvFilePath;
-        System.out.println("readCSVFile() — reserved for future CSV integration.");
-    }
-
-    /**
-     * Parses employee records from the loaded CSV file into Employee objects.
-     * Reserved for future CSV file integration.
-     */
-    public void parseEmployees() {
-        // TODO: Parse CSV rows and populate the employees list
-        System.out.println("parseEmployees() — reserved for future CSV integration.");
-    }
-
-    /**
-     * Parses attendance records from the loaded CSV file into Attendance
-     * objects. Reserved for future CSV file integration.
-     */
-    public void parseAttendance() {
-        // TODO: Parse CSV rows and populate the attendanceRecords list
-        System.out.println("parseAttendance() — reserved for future CSV integration.");
-    }
-
-    // EMPLOYEE CRUD OPERATIONS
-    /**
-     * Returns the full list of employees.
+     * BUG FIX: previously this returned void, so a missing CSV file
+     * loaded silently (CSVHandler only printed to the console) and
+     * the app opened with an empty employee list and no explanation.
+     * Now returns a warning string the caller (Main) can show in a
+     * dialog. An empty string means everything loaded fine.
      *
-     * @return List of all Employee objects
+     * @return warning message if a file is missing, or "" if all good
      */
+    public String loadEmployees() {
+
+        System.out.println("Employee file: " + EMPLOYEE_FILE);
+        StringBuilder warnings = new StringBuilder();
+
+        if (!new File(EMPLOYEE_FILE).exists()) {
+            warnings.append("Employee file not found:\n\"")
+                    .append(EMPLOYEE_FILE).append("\"\n\n");
+        }
+        if (!new File(ATTENDANCE_FILE).exists()) {
+            warnings.append("Attendance file not found:\n\"")
+                    .append(ATTENDANCE_FILE).append("\"\n\n");
+        }
+
+        employees = CSVHandler.readEmployees(EMPLOYEE_FILE);
+
+        int badValues = CSVHandler.getLastParseWarningCount();
+        if (badValues > 0) {
+            warnings.append(badValues)
+                    .append(" numeric value(s) in the employee CSV could not be read "
+                          + "and were treated as 0. Check the file for corrupted "
+                          + "rate or salary data.\n\n");
+        }
+
+        return warnings.toString();
+    }
+
+    // --------------------------------------------------------
+    // OBSERVER PATTERN — keep every open window in sync
+    // --------------------------------------------------------
+
+    /**
+     * Registers a listener to be notified whenever employee data changes.
+     * EmployeeMenu calls this when it opens so it can refresh itself
+     * even when the change happened from a different window (e.g.
+     * PayrollMenu's "Compute Salaries").
+     */
+    public void addDataChangeListener(DataChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Unregisters a listener. EmployeeMenu calls this when its window
+     * closes, so a disposed window is never notified again.
+     */
+    public void removeDataChangeListener(DataChangeListener listener) {
+        listeners.remove(listener);
+    }
+
+    /** Notifies every registered listener that employee data has changed. */
+    private void notifyDataChanged() {
+        for (DataChangeListener listener : listeners) {
+            listener.onDataChanged();
+        }
+    }
+
+    // --------------------------------------------------------
+    // EMPLOYEE ACCESS
+    // --------------------------------------------------------
+
     public List<Employee> getEmployees() {
         return employees;
     }
 
     /**
-     * Returns the full list of attendance records.
-     *
-     * @return List of all Attendance objects
-     */
-    public List<Attendance> getAttendanceList() {
-        return attendanceRecords;
-    }
-
-    /**
-     * Searches for an employee by their unique ID. Returns null if no matching
-     * employee is found.
-     *
-     * @param employeeID The ID to search for
-     * @return Matching Employee object, or null if not found
+     * Searches for an employee by their unique ID.
+     * Returns null if not found.
      */
     public Employee findEmployee(String employeeID) {
         for (Employee emp : employees) {
-            if (emp.getEmployeeID().equals(employeeID)) {
-                return emp;
-            }
+            if (emp.getEmployeeID().equals(employeeID)) return emp;
         }
         return null;
     }
 
-    public void addEmployee(Employee emp) {
+    // --------------------------------------------------------
+    // CRUD — each operation syncs to the CSV file
+    // --------------------------------------------------------
+
+    /**
+     * Adds a new employee to the list and appends them to the CSV.
+     * If the CSV write fails, the in-memory add is rolled back so
+     * the app never shows a record that isn't actually saved.
+     *
+     * @return true if added and saved successfully, false otherwise
+     */
+    public boolean addEmployee(Employee emp) {
         employees.add(emp);
+        boolean saved = CSVHandler.appendEmployee(EMPLOYEE_FILE, emp);
+
+        if (!saved) {
+            employees.remove(emp); // roll back — keep memory and disk consistent
+            return false;
+        }
+
+        notifyDataChanged();
+        return true;
     }
 
     /**
-     * Updates the editable fields of an existing employee identified by ID.
-     * Only first name, last name, and position are editable to prevent
-     * accidental ID or salary corruption.
+     * Updates all editable fields of an existing employee and
+     * rewrites the CSV to reflect the change.
+     * Employee ID and computed fields are not updated here.
      *
-     * @param employeeID ID of the employee to update
-     * @param firstName New first name
-     * @param lastName New last name
-     * @param position New job position
-     * @return true if the update was successful; false if employee not found
+     * If the CSV write fails, the previous field values are restored
+     * so the in-memory data still matches what's actually on disk.
+     *
+     * @return true if the employee was found, updated, and saved; false otherwise
      */
     public boolean updateEmployee(String employeeID,
-            String firstName,
-            String lastName,
-            String position) {
+                                  String firstName,    String lastName,
+                                  String sssNumber,    String philHealthNumber,
+                                  String tin,          String pagIbigNumber,
+                                  String position,
+                                  double hourlyRate,   double basicSalary) {
+
         Employee emp = findEmployee(employeeID);
-        if (emp != null) {
-            emp.setFirstName(firstName);
-            emp.setLastName(lastName);
-            emp.setPosition(position);
-            return true;
+        if (emp == null) return false;
+
+        // Snapshot old values in case the write fails and we need to roll back
+        String oldFirstName   = emp.getFirstName();
+        String oldLastName    = emp.getLastName();
+        String oldSss         = emp.getSssNumber();
+        String oldPhilHealth  = emp.getPhilHealthNumber();
+        String oldTin         = emp.getTin();
+        String oldPagIbig     = emp.getPagIbigNumber();
+        String oldPosition    = emp.getPosition();
+        double oldHourlyRate  = emp.getHourlyRate();
+        double oldBasicSalary = emp.getBasicSalary();
+
+        emp.setFirstName(firstName);
+        emp.setLastName(lastName);
+        emp.setSssNumber(sssNumber);
+        emp.setPhilHealthNumber(philHealthNumber);
+        emp.setTin(tin);
+        emp.setPagIbigNumber(pagIbigNumber);
+        emp.setPosition(position);
+        emp.setHourlyRate(hourlyRate);
+        emp.setBasicSalary(basicSalary);
+
+        boolean saved = CSVHandler.writeEmployees(EMPLOYEE_FILE, employees);
+
+        if (!saved) {
+            // Roll back so in-memory data still matches what's on disk
+            emp.setFirstName(oldFirstName);
+            emp.setLastName(oldLastName);
+            emp.setSssNumber(oldSss);
+            emp.setPhilHealthNumber(oldPhilHealth);
+            emp.setTin(oldTin);
+            emp.setPagIbigNumber(oldPagIbig);
+            emp.setPosition(oldPosition);
+            emp.setHourlyRate(oldHourlyRate);
+            emp.setBasicSalary(oldBasicSalary);
+            return false;
         }
-        return false;
+
+        notifyDataChanged();
+        return true;
     }
 
     /**
-     * Removes an employee from the list by their ID.
+     * Removes an employee from the list and rewrites the CSV.
+     * If the write fails, the employee is restored to the in-memory
+     * list so memory and disk stay consistent.
      *
-     * @param employeeID ID of the employee to remove
-     * @return true if deletion was successful; false if employee not found
+     * @return true if the employee was found, deleted, and saved; false otherwise
      */
     public boolean deleteEmployee(String employeeID) {
         Employee emp = findEmployee(employeeID);
-        if (emp != null) {
-            employees.remove(emp);
-            return true;
+        if (emp == null) return false;
+
+        employees.remove(emp);
+        boolean saved = CSVHandler.writeEmployees(EMPLOYEE_FILE, employees);
+
+        if (!saved) {
+            employees.add(emp); // roll back
+            return false;
         }
-        return false;
+
+        notifyDataChanged();
+        return true;
     }
 
-    // PAYROLL COMPUTATION METHODS
+    // --------------------------------------------------------
+    // SALARY COMPUTATION (Feature 3)
+    // --------------------------------------------------------
+
     /**
-     * Sums all hours worked across all attendance records for a given employee.
-     * Uses calculateHoursWorked() from the Attendance class for each record.
+     * Computes salaries for all employees using attendance records.
+     * For each employee:
+     *   1. Gets total hours worked from the Attendance CSV
+     *   2. Computes gross pay, deductions, and net pay
+     *   3. Updates the Employee object with computed values
+     *   4. Saves all results back to the Employee CSV
      *
-     * @param employeeID ID of the employee
-     * @return Total hours worked as a double
+     * This is triggered by the "Compute Salaries" button in PayrollMenu.
+     *
+     * BUG FIX: previously this always returned a "complete" message,
+     * even when the attendance file was missing/empty (every employee
+     * silently got 0 hours) or when the CSV write itself failed. It now:
+     *   - aborts immediately if there is no attendance data at all
+     *   - reports how many employees had no matching attendance record
+     *   - clearly distinguishes "computed but not saved" from genuine success
+     * The result string always starts with "Salary computation complete!"
+     * ONLY when computation AND saving both genuinely succeeded — PayrollMenu
+     * relies on this to decide which dialog to show.
+     *
+     * @return Status message shown to the user after computation
      */
-    public double getTotalHoursWorked(String employeeID) {
-        double total = 0;
-        for (Attendance att : attendanceRecords) {
-            if (att.getEmployeeID().equals(employeeID)) {
-                total += att.calculateHoursWorked();
+    public String computeAllSalaries() {
+
+        if (employees.isEmpty()) {
+            return "No employee records found.\n"
+                 + "Please check that the CSV file exists and is not empty.";
+        }
+
+        Map<String, Double> hoursMap =
+            CSVHandler.readTotalHoursWorked(ATTENDANCE_FILE);
+
+        if (hoursMap.isEmpty()) {
+            return "Salary computation aborted.\n"
+                 + "No attendance records were found in:\n\"" + ATTENDANCE_FILE + "\"\n"
+                 + "Please make sure the attendance file exists and is in the "
+                 + "correct location, then try again.";
+        }
+
+        Map<String, Integer> monthsMap =
+            CSVHandler.countMonthsWorked(ATTENDANCE_FILE);
+
+        int missingCount = 0;
+
+        for (Employee emp : employees) {
+            if (!hoursMap.containsKey(emp.getEmployeeID())) {
+                missingCount++;
             }
+
+            double hours = hoursMap.getOrDefault(emp.getEmployeeID(), 0.0);
+            int monthsWorked = monthsMap.getOrDefault(emp.getEmployeeID(), 1);
+            if (monthsWorked < 1) monthsWorked = 1;
+
+            double gross = SalaryComputationModule.computeGrossPay(emp.getHourlyRate(), hours);
+
+            // Deduction brackets are monthly-scale — compute on the average
+            // monthly gross, then scale back up to match the cumulative
+            // gross/hours already shown elsewhere.
+            double monthlyGross      = gross / monthsWorked;
+            double monthlyDeductions = SalaryComputationModule.computeDeductions(monthlyGross);
+            double deduct = monthlyDeductions * monthsWorked;
+
+            double net = SalaryComputationModule.computeNetPay(gross, deduct);
+
+            emp.setHoursWorked(hours);
+            emp.setGrossPay(gross);
+            emp.setTotalDeductions(deduct);
+            emp.setNetPay(net);
         }
-        return total;
+
+        boolean saved = CSVHandler.writeEmployees(EMPLOYEE_FILE, employees);
+
+        // Notify listeners regardless of save outcome — the in-memory values
+        // changed either way, so any open table should reflect them.
+        notifyDataChanged();
+
+        StringBuilder result = new StringBuilder();
+
+        if (saved) {
+            result.append("Salary computation complete!\n");
+        } else {
+            result.append("Salaries were computed but COULD NOT be saved to the CSV file.\n")
+                  .append("Check file permissions and try again.\n");
+        }
+
+        result.append("Processed ").append(employees.size()).append(" employee(s).\n");
+
+        if (missingCount > 0) {
+            result.append(missingCount)
+                  .append(" employee(s) had no attendance records and were given 0 hours.\n");
+        }
+
+        if (saved) {
+            result.append("Results saved to CSV and visible in the table.");
+        }
+
+        return result.toString();
     }
 
-    /**
-     * Calculates gross pay for a given employee based on their total hours
-     * worked and their hourly rate.
-     *
-     * @param emp Employee whose gross pay to compute
-     * @param att Single attendance record (used for individual record pay)
-     * @return Gross pay amount
-     */
-    public double calculateGrossPay(Employee emp, Attendance att) {
-        return att.calculateHoursWorked() * emp.getHourlyRate();
-    }
+    // --------------------------------------------------------
+    // PAYROLL DISPLAY METHODS
+    // --------------------------------------------------------
 
     /**
-     * Calculates all government-mandated deductions from gross pay. Returns
-     * total deductions (SSS + PhilHealth + Pag-IBIG + Tax).
+     * Generates a formatted payslip for the given employee ID.
      *
-     * @param grossPay The computed gross pay amount
-     * @return Total deductions amount
-     */
-    public double calculateDeductions(double grossPay) {
-        return (grossPay * DEDUCTION_RATE_SSS)
-                + (grossPay * DEDUCTION_RATE_PHILHEALTH)
-                + PAGIBIG_FIXED
-                + (grossPay * TAX_RATE);
-    }
-
-    /**
-     * Calculates net pay by subtracting total deductions from gross pay.
+     * If Compute Salaries has not been run yet (grossPay is 0),
+     * returns a prompt to run it first instead of showing zeros.
      *
-     * @param grossPay Computed gross pay
-     * @param deductions Total deductions amount
-     * @return Net pay amount
-     */
-    public double calculateNetPay(double grossPay, double deductions) {
-        return grossPay - deductions;
-    }
-
-    /**
-     * Calculates overtime pay using a standard 1.25x multiplier applied to the
-     * employee's hourly rate.
-     *
-     * @param overtimeHours Number of overtime hours rendered
-     * @param hourlyRate Employee's regular hourly rate
-     * @return Computed overtime pay amount
-     */
-    public double calculateOvertimePay(double overtimeHours, double hourlyRate) {
-        return overtimeHours * hourlyRate * OVERTIME_RATE;
-    }
-
-    // PAYSLIP AND REPORT GENERATION
-    /**
-     * Generates a formatted payslip string for the employee with the given ID.
-     * Shows gross pay, itemized deductions, and net pay. Returns an error
-     * message string if the employee is not found.
-     *
-     * NOTE: Deduction rates used are MS1 approximations. SSS: 4.5%, PhilHealth:
-     * 2.0%, Pag-IBIG: PHP 100 fixed, Tax: 10% These will be updated with
-     * official PH bracket tables in future milestones.
-     *
-     * @param employeeID ID of the employee whose payslip to generate
-     * @return Formatted payslip string, or an error message if not found
+     * @param employeeID The ID of the employee
+     * @return Formatted payslip string, or an error/prompt message
      */
     public String generatePayslip(String employeeID) {
 
@@ -257,120 +362,129 @@ public class PayrollService {
 
         if (emp == null) {
             return "Employee with ID \"" + employeeID + "\" was not found.\n"
-                    + "Please check the ID and try again.";
+                 + "Please check the ID and try again.";
         }
 
-        double totalHours = getTotalHoursWorked(employeeID);
-        double grossPay = totalHours * emp.getHourlyRate();
-        double sss = grossPay * DEDUCTION_RATE_SSS;
-        double philHealth = grossPay * DEDUCTION_RATE_PHILHEALTH;
-        double pagIbig = PAGIBIG_FIXED;
-        double tax = grossPay * TAX_RATE;
-        double totalDeduct = calculateDeductions(grossPay);
-        double netPay = calculateNetPay(grossPay, totalDeduct);
+        if (emp.getGrossPay() == 0) {
+            return "Payslip for " + emp.getFullName() + " is not yet available.\n\n"
+                 + "Please click 'Compute Salaries' in the Payroll Menu first\n"
+                 + "to generate salary data from attendance records.";
+        }
 
-        return "================================\n"
-                + "        MOTORPH PAYSLIP         \n"
-                + "================================\n"
-                + "Employee ID  : " + emp.getEmployeeID() + "\n"
-                + "Name         : " + emp.getFullName() + "\n"
-                + "Position     : " + emp.getPosition() + "\n"
-                + "Hourly Rate  : PHP " + String.format("%.2f", emp.getHourlyRate()) + "\n"
-                + "Total Hours  : " + String.format("%.2f", totalHours) + "\n"
-                + "--------------------------------\n"
-                + "Gross Pay    : PHP " + String.format("%.2f", grossPay) + "\n"
-                + "--------------------------------\n"
-                + "SSS          : PHP " + String.format("%.2f", sss) + "\n"
-                + "PhilHealth   : PHP " + String.format("%.2f", philHealth) + "\n"
-                + "Pag-IBIG     : PHP " + String.format("%.2f", pagIbig) + "\n"
-                + "Withholding  : PHP " + String.format("%.2f", tax) + "\n"
-                + "Total Deduct : PHP " + String.format("%.2f", totalDeduct) + "\n"
-                + "--------------------------------\n"
-                + "NET PAY      : PHP " + String.format("%.2f", netPay) + "\n"
-                + "================================\n";
+        double gross = emp.getGrossPay();
+
+        // Recreate the same monthly-scale breakdown used in
+        // computeAllSalaries() so SSS/PhilHealth/Pag-IBIG/Tax lines here
+        // add up to the same Total Deductions already saved on the record.
+        Map<String, Integer> monthsMap = CSVHandler.countMonthsWorked(ATTENDANCE_FILE);
+        int monthsWorked = monthsMap.getOrDefault(employeeID, 1);
+        if (monthsWorked < 1) monthsWorked = 1;
+
+        double monthlyGross = gross / monthsWorked;
+        double[] breakdown  = SalaryComputationModule.computeDeductionBreakdown(monthlyGross);
+        double sss          = breakdown[0] * monthsWorked;
+        double philHealth   = breakdown[1] * monthsWorked;
+        double pagIbig      = breakdown[2] * monthsWorked;
+        double tax          = breakdown[3] * monthsWorked;
+        double totalDeduct  = emp.getTotalDeductions();
+        double netPay       = emp.getNetPay();
+
+        return  "================================\n"
+              + "        MOTORPH PAYSLIP         \n"
+              + "================================\n"
+              + "Employee #   : " + emp.getEmployeeID()                              + "\n"
+              + "Name         : " + emp.getFullName()                                + "\n"
+              + "Position     : " + emp.getPosition()                                + "\n"
+              + "SSS #        : " + emp.getSssNumber()                               + "\n"
+              + "PhilHealth # : " + emp.getPhilHealthNumber()                        + "\n"
+              + "TIN #        : " + emp.getTin()                                     + "\n"
+              + "Pag-IBIG #   : " + emp.getPagIbigNumber()                           + "\n"
+              + "Hourly Rate  : PHP " + String.format("%.2f", emp.getHourlyRate())   + "\n"
+              + "Total Hours  : "     + String.format("%.2f", emp.getHoursWorked())  + "\n"
+              + "--------------------------------\n"
+              + "Gross Pay    : PHP " + String.format("%.2f", gross)                 + "\n"
+              + "--------------------------------\n"
+              + "SSS          : PHP " + String.format("%.2f", sss)                   + "\n"
+              + "PhilHealth   : PHP " + String.format("%.2f", philHealth)            + "\n"
+              + "Pag-IBIG     : PHP " + String.format("%.2f", pagIbig)              + "\n"
+              + "Withholding  : PHP " + String.format("%.2f", tax)                   + "\n"
+              + "Total Deduct : PHP " + String.format("%.2f", totalDeduct)           + "\n"
+              + "--------------------------------\n"
+              + "NET PAY      : PHP " + String.format("%.2f", netPay)               + "\n"
+              + "================================\n";
     }
 
     /**
-     * Generates a payroll summary covering all employees. Shows each employee's
-     * hours worked, gross pay, total deductions, and net pay, plus a running
-     * total at the bottom.
-     *
-     * Validation: Returns an error message if no employees are loaded.
-     *
-     * @return Formatted payroll summary string
-     */
-    public String generateSummary() {
-
-        if (employees.isEmpty()) {
-            return "No employee data loaded. Please add employees first.";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        double totalGross = 0;
-        double totalDeduct = 0;
-        double totalNet = 0;
-
-        sb.append("================================\n");
-        sb.append("     MOTORPH PAYROLL SUMMARY    \n");
-        sb.append("================================\n");
-        sb.append(String.format("%-6s %-20s %10s %12s %10s%n",
-                "ID", "Name", "Gross", "Deductions", "Net Pay"));
-        sb.append("------------------------------------------------\n");
-
-        for (Employee emp : employees) {
-            double hours = getTotalHoursWorked(emp.getEmployeeID());
-            double gross = hours * emp.getHourlyRate();
-            double deduct = calculateDeductions(gross);
-            double net = calculateNetPay(gross, deduct);
-
-            totalGross += gross;
-            totalDeduct += deduct;
-            totalNet += net;
-
-            sb.append(String.format("%-6s %-20s %10.2f %12.2f %10.2f%n",
-                    emp.getEmployeeID(),
-                    emp.getFullName(),
-                    gross,
-                    deduct,
-                    net));
-        }
-
-        sb.append("------------------------------------------------\n");
-        sb.append(String.format("%-27s %10.2f %12.2f %10.2f%n",
-                "TOTALS:", totalGross, totalDeduct, totalNet));
-        sb.append("================================\n");
-        sb.append("Total Employees : ").append(employees.size()).append("\n");
-        sb.append(String.format("Average Net Pay : PHP %.2f%n",
-                employees.isEmpty() ? 0 : totalNet / employees.size()));
-
-        return sb.toString();
-    }
-
-    /**
-     * Processes payroll for all employees and returns a simple summary showing
-     * name, hours worked, and gross pay for each employee. Used by the
-     * PayrollMenu "Process Payroll" button.
-     *
-     * @return Formatted payroll processing result string
+     * Returns a quick summary of all employees' hours and gross pay.
+     * Used by the "Process Payroll" button in PayrollMenu.
      */
     public String processPayroll() {
 
         if (employees.isEmpty()) {
-            return "No employee data loaded. Please add employees first.";
+            return "No employee data loaded. Please check the CSV file.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("=== PAYROLL PROCESSED ===\n");
+        sb.append("=== PAYROLL SUMMARY ===\n");
+        sb.append(String.format("%-25s %10s %15s%n", "Name", "Hours", "Gross Pay"));
+        sb.append("-------------------------------------------\n");
 
         for (Employee emp : employees) {
-            double hours = getTotalHoursWorked(emp.getEmployeeID());
-            double gross = hours * emp.getHourlyRate();
-            sb.append(String.format("%-22s | Hours: %5.2f | Gross: PHP %,.2f%n",
-                    emp.getFullName(), hours, gross));
+            sb.append(String.format("%-25s %10.2f  PHP %,.2f%n",
+                      emp.getFullName(),
+                      emp.getHoursWorked(),
+                      emp.getGrossPay()));
         }
 
-        sb.append("=========================\n");
-        sb.append("Computation complete. View individual payslips for full breakdown.");
+        sb.append("-------------------------------------------\n");
+        sb.append("NOTE: Click 'Compute Salaries' for accurate data.");
+        return sb.toString();
+    }
+
+    /**
+     * Returns a full payroll report with gross pay, deductions,
+     * net pay per employee, plus totals and average net pay.
+     * Used by the "Generate Payroll Report" button in PayrollMenu.
+     */
+    public String generateSummary() {
+
+        if (employees.isEmpty()) {
+            return "No employee data loaded. Please check the CSV file.";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        double totalGross = 0, totalDeduct = 0, totalNet = 0;
+
+        sb.append("================================\n");
+        sb.append("    MOTORPH PAYROLL REPORT      \n");
+        sb.append("================================\n");
+        sb.append(String.format("%-6s %-22s %10s %12s %10s%n",
+                  "ID", "Name", "Gross", "Deductions", "Net Pay"));
+        sb.append("----------------------------------------------------------\n");
+
+        for (Employee emp : employees) {
+            double gross  = emp.getGrossPay();
+            double deduct = emp.getTotalDeductions();
+            double net    = emp.getNetPay();
+
+            totalGross  += gross;
+            totalDeduct += deduct;
+            totalNet    += net;
+
+            sb.append(String.format("%-6s %-22s %10.2f %12.2f %10.2f%n",
+                      emp.getEmployeeID(), emp.getFullName(),
+                      gross, deduct, net));
+        }
+
+        sb.append("----------------------------------------------------------\n");
+        sb.append(String.format("%-29s %10.2f %12.2f %10.2f%n",
+                  "TOTALS:", totalGross, totalDeduct, totalNet));
+        sb.append("================================\n");
+        sb.append("Total Employees : ").append(employees.size()).append("\n");
+        sb.append(String.format("Average Net Pay : PHP %,.2f%n",
+                  employees.size() > 0 ? totalNet / employees.size() : 0.0));
+        sb.append("\nNOTE: Click 'Compute Salaries' first for accurate results.");
+
         return sb.toString();
     }
 }
