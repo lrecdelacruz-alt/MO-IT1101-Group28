@@ -3,40 +3,70 @@
 
 <h2>Project Overview</h2>
 
-MotorPH Payroll System App is a Java Swing-based payroll and employee management prototype developed for Computer Programming 2.
+MotorPH Payroll System App is a Java Swing-based payroll and employee management system developed for MO-IT103 - Computer Programming 2 | Group 28 | H1101.
 
-The system applies Object-Oriented Programming (OOP) principles and event-driven programming to manage employee records, attendance data, payroll processing, and payslip generation through a graphical user interface (GUI).
+The system applies Object-Oriented Programming (OOP) principles, event-driven programming, and the Observer design pattern to manage employee records, attendance data, payroll computation, and payslip generation through a graphical user interface (GUI).
 
-This project follows the provided UML class diagram and milestone requirements focused on Java Swing implementation, backend integration, input validation, and interface navigation.
-  
+This project fulfills Milestone 2 requirements by implementing Features 2-4 as a cohesive and modular system with CSV file persistence, input validation, and maintainable code architecture. The application also includes Feature 5 (Payroll Summary) as an enhancement.
   
 <h2>Features</h2>
 
 
-Authentication
-Username and password login with masked password input
-Exit confirmation on login cancel
-Invalid login detection with user-friendly error messages
+<h3>Authentication</h3>
 
-<h2>Employee Management</h2>
+* Username and password login with masked password input (JPasswordField)
+* Role-based access control for admin and employee users
+* Employee identity verification using Employee ID
+* Invalid login detection with user-friendly error messages
+* Logout support with session refresh
 
-Add, Update, Delete, and View employee records
-Employee table display using JTable with real-time search/filter
-Delete confirmation dialog before removal
-View individual attendance records per employee
+<h3>Employee Management (Feature 2)</h3>
 
-<h2>Attendance Management</h2>
+* Load and display employee records from a CSV file in a JTable
+* Display Employee #, First Name, Last Name, Position, Hourly Rate, Hours Worked, Gross Pay, Total Deductions, and Net Pay
+* Real-time search and filtering by Employee #, First Name, or Last Name
+* Sortable table columns using TableRowSorter
+* Add new employees with input validation and duplicate ID prevention
+* Update existing employee records using pre-filled forms
+* Delete employee records with confirmation dialogs
+* View complete employee details
+* View attendance records linked by Employee ID
+* Add attendance entries with date and time validation
 
-Store and display sample attendance records
-Compute total hours worked per employee
-Link attendance records to employees by ID
+<h3>Salary Computation (Feature 3)</h3>
 
-<h2>Payroll Processing</h2>
+* Compute gross pay, government deductions, and net pay using a dedicated SalaryComputationModule
+* Calculate SSS, PhilHealth, Pag-IBIG, and withholding tax deductions
+* Save computed values back to the employee CSV file
+* Apply monthly scaling for attendance records spanning multiple months
+* Provide clear success and error messages during computation
 
-Gross Pay, Deductions, and Net Pay computation
-Deductions include SSS, PhilHealth, Pag-IBIG, and Withholding Tax
-Individual payslip generation
-Payroll summary report with totals and average net pay
+<h3>Update and Delete Records (Feature 4)</h3>
+
+* Update and delete employee records directly from the employee table
+* Validate all inputs before saving changes
+* Persist changes to the CSV file
+* Refresh open windows automatically using the Observer pattern
+* Display confirmation messages for update and delete actions
+
+<h3>Payroll Summary (Feature 5 - Enhancement)</h3>
+
+* Process payroll for all employees
+* Generate formatted payslips by Employee ID
+* Generate payroll reports with gross pay, deductions, net pay, totals, and average net pay
+
+<h3>Employee Self-Service</h3>
+
+* Restrict employees to viewing only their own information
+* View personal payslips
+* View personal attendance records
+
+
+<h3>Employee Self-Service</h3>
+
+* Restrict employees to viewing only their own information
+* View personal payslips
+* View personal attendance records
 
 
 <h2>Technologies Used</h2>
