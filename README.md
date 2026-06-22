@@ -1,3 +1,5 @@
+*Project Overview
+
 MotorPH Payroll System App is a Java Swing-based payroll and employee management system developed for MO-IT103 - Computer Programming 2 | Group 28 | H1101.
 
 The system applies Object-Oriented Programming (OOP) principles, event-driven programming, and the Observer design pattern to manage employee records, attendance data, payroll computation, and payslip generation through a graphical user interface (GUI).
