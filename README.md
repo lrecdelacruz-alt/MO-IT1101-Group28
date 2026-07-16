@@ -13,51 +13,77 @@ This project fulfills Milestone 2 requirements by implementing Features 2-4 as a
 ### Authentication
 
 Username and password login with masked password input (JPasswordField)
+
 Role-based access control for admin and employee users
+
 Employee identity verification using Employee ID
+
 Invalid login detection with user-friendly error messages
+
 Logout support with session refresh
 
 ### Employee Management (Feature 2)
 
 Load and display employee records from a CSV file in a JTable
+
 Display Employee #, First Name, Last Name, Position, Hourly Rate, Hours Worked, Gross Pay, Total Deductions, and Net Pay
+
 Real-time search and filtering by Employee #, First Name, or Last Name
+
 Sortable table columns using TableRowSorter
+
 Add new employees with input validation and duplicate ID prevention
+
 Update existing employee records using pre-filled forms
+
 Delete employee records with confirmation dialogs
+
 View complete employee details
+
 View attendance records linked by Employee ID
+
 Add attendance entries with date and time validation
 
 ### Salary Computation (Feature 3)
 
 Compute gross pay, government deductions, and net pay using a dedicated SalaryComputationModule
+
 Calculate SSS, PhilHealth, Pag-IBIG, and withholding tax deductions
+
 Save computed values back to the employee CSV file
+
 Apply monthly scaling for attendance records spanning multiple months
+
 Provide clear success and error messages during computation
 
 ### Update and Delete Records (Feature 4)
 
 Update and delete employee records directly from the employee table
+
 Validate all inputs before saving changes
+
 Persist changes to the CSV file
+
 Refresh open windows automatically using the Observer pattern
+
 Display confirmation messages for update and delete actions
 
 ### Payroll Summary (Feature 5 - Enhancement)
 
 Process payroll for all employees
+
 Generate formatted payslips by Employee ID
+
 Generate payroll reports with gross pay, deductions, net pay, totals, and average net pay
 
 ### Employee Self-Service
 
 Restrict employees to viewing only their own information
+
 View personal payslips
+
 View personal attendance records
+
 Navigate back to the welcome/home view at any time using the Home button
 
 ⸻
@@ -133,7 +159,7 @@ Update the file paths in the source code if your CSV files are stored in a diffe
 3. Compile and run Main.java.
 4. Log in using the credentials below.
 
-Default Login Credentials
+## Default Login Credentials
 
 ### Admin
 
