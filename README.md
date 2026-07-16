@@ -65,12 +65,19 @@ Navigate back to the welcome/home view at any time using the Home button
 ## Technologies Used
 
 Java
+
 Java Swing
+
 Java Collections Framework (ArrayList, HashMap, HashSet)
+
 CSV file I/O (BufferedReader, BufferedWriter, RandomAccessFile)
+
 java.time.LocalTime
+
 Event-driven programming (ActionListener, DocumentListener, WindowAdapter)
+
 Object-Oriented Programming principles
+
 Observer Design Pattern (DataChangeListener)
 
 ⸻
@@ -140,7 +147,7 @@ Username: employee
 
 Password: employee123
 
-Employees must enter their Employee ID after login to access their records.
+Employees must enter their Employee ID after login to access their records. (e.g. 10001)
 
 ⸻
 
