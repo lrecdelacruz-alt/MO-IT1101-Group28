@@ -58,6 +58,7 @@ Generate payroll reports with gross pay, deductions, net pay, totals, and averag
 Restrict employees to viewing only their own information
 View personal payslips
 View personal attendance records
+Navigate back to the welcome/home view at any time using the Home button
 
 ⸻
 
@@ -77,13 +78,14 @@ Observer Design Pattern (DataChangeListener)
 ## System Structure
 
 Main.java - Application entry point, login flow, and session management
+LoginScreen.java - Branded login window with credential validation
 Employee.java - Employee data model
-Attendance.java - Attendance data model
 AuthService.java - Authentication and role management
 CSVHandler.java - CSV file reading and writing operations
 PayrollService.java - Employee CRUD operations, payroll coordination, and Observer notifications
 SalaryComputationModule.java - Salary and deduction calculations
 EmployeeMenu.java - Employee management GUI
+EmployeeSelfServiceMenu.java - Restricted self-service GUI for the employee role
 PayrollMenu.java - Payroll operations GUI
 DataChangeListener.java - Observer interface for window synchronization
 AppIcon.java - Shared application icon
@@ -95,9 +97,9 @@ UIHelper.java - Shared button styling utilities
 
 Place the following files in the location expected by the application:
 
-- MotorPH_Employee Data - Employee Details.csv - Employee records
-- MotorPH_Employee Data - Attendance Record.csv - Attendance records
-
+MotorPH_Employee Data - Employee Details.csv - Employee records
+MotorPH_Employee Data - Attendance Record.csv - Attendance records
+resources/logo.png - Application logo displayed on the login screen (falls back to a default icon if missing)
 Update the file paths in the source code if your CSV files are stored in a different directory.
 
 ⸻
