@@ -78,17 +78,29 @@ Observer Design Pattern (DataChangeListener)
 ## System Structure
 
 Main.java - Application entry point, login flow, and session management
+
 LoginScreen.java - Branded login window with credential validation
+
 Employee.java - Employee data model
+
 AuthService.java - Authentication and role management
+
 CSVHandler.java - CSV file reading and writing operations
+
 PayrollService.java - Employee CRUD operations, payroll coordination, and Observer notifications
+
 SalaryComputationModule.java - Salary and deduction calculations
+
 EmployeeMenu.java - Employee management GUI
+
 EmployeeSelfServiceMenu.java - Restricted self-service GUI for the employee role
+
 PayrollMenu.java - Payroll operations GUI
+
 DataChangeListener.java - Observer interface for window synchronization
+
 AppIcon.java - Shared application icon
+
 UIHelper.java - Shared button styling utilities
 
 ⸻
