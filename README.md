@@ -110,8 +110,11 @@ UIHelper.java - Shared button styling utilities
 Place the following files in the location expected by the application:
 
 MotorPH_Employee Data - Employee Details.csv - Employee records
+
 MotorPH_Employee Data - Attendance Record.csv - Attendance records
+
 resources/logo.png - Application logo displayed on the login screen (falls back to a default icon if missing)
+
 Update the file paths in the source code if your CSV files are stored in a different directory.
 
 ⸻
@@ -128,11 +131,13 @@ Default Login Credentials
 ### Admin
 
 Username: admin
+
 Password: admin123
 
 ### Employee
 
 Username: employee
+
 Password: employee123
 
 Employees must enter their Employee ID after login to access their records.
