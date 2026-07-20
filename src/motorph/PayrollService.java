@@ -275,6 +275,8 @@ public class PayrollService {
             return false;
         }
 
+        CSVHandler.deleteAllAttendanceForEmployee(ATTENDANCE_FILE, employeeID);
+
         AuditLogger.log("DELETE EMPLOYEE", "ID: " + employeeID
                 + " | Name: " + emp.getFullName());
         notifyDataChanged();
