@@ -519,6 +519,50 @@ public class CSVHandler {
     }
 
     /**
+     * Deletes ALL attendance records for a given employee — used when an
+     * employee is deleted, so a future employee reusing the same ID
+     * doesn't inherit the previous employee's attendance history.
+     *
+     * @return true if the file was rewritten successfully; false otherwise
+     */
+    public static boolean deleteAllAttendanceForEmployee(String filePath, String employeeID) {
+
+        File file = new File(filePath);
+        if (!file.exists()) return true; // nothing to delete, not an error
+
+        List<String[]> remainingRows = new ArrayList<>();
+        String header = null;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (isFirstLine) {
+                    header = line;
+                    isFirstLine = false;
+                    continue;
+                }
+                if (line.isEmpty()) continue;
+
+                String[] cols = parseCSVLine(line);
+                if (cols.length < 6) continue;
+
+                if (!cols[0].trim().equals(employeeID)) {
+                    remainingRows.add(cols);
+                }
+                // rows matching employeeID are simply skipped (deleted)
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading attendance file for bulk delete: " + e.getMessage());
+            return false;
+        }
+
+        return rewriteAttendanceFile(filePath, header, remainingRows);
+    }
+    
+    /**
      * Rewrites the attendance CSV using the supplied header and records.
      *
      * Each field is processed using quoteIfNeeded() so values containing
